@@ -499,4 +499,5 @@ async def get_ansible_lint_version() -> Any:
     }
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    # Run with stdio transport - will stay alive waiting for stdin
+    mcp.run()

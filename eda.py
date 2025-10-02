@@ -104,4 +104,5 @@ async def list_event_streams() -> Any:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    # Run with stdio transport - will stay alive waiting for stdin
+    mcp.run()

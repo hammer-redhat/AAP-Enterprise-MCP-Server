@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "ansible-openshift": {
+      "command": "/Users/chrhamme/AAP-Enterprise-MCP-Server/connect-ansible-mcp.sh",
+      "args": []
+    },
+    "eda-openshift": {
+      "command": "/Users/chrhamme/AAP-Enterprise-MCP-Server/connect-eda-mcp.sh",
+      "args": []
+    },
+    "ansible-lint-openshift": {
+      "command": "/Users/chrhamme/AAP-Enterprise-MCP-Server/connect-lint-mcp.sh",
+      "args": []
+    },
+    "redhat-docs-openshift": {
+      "command": "/Users/chrhamme/AAP-Enterprise-MCP-Server/connect-redhat-docs-mcp.sh",
+      "args": []
+    }
+  }
+}
+

@@ -341,5 +341,5 @@ async def fetch_redhat_content(url: str, format_preference: str = "auto") -> str
 
 
 if __name__ == "__main__":
-    import asyncio
+    # Run with stdio transport - will stay alive waiting for stdin  
     mcp.run()

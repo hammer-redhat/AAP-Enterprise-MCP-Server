@@ -1,0 +1,305 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aap-mcp-server
+  labels:
+    app: aap-mcp-server
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aap-credentials
+  namespace: aap-mcp-server
+type: Opaque
+stringData:
+  AAP_TOKEN: "YOUR_AAP_TOKEN_HERE"
+  AAP_URL: "https://your-aap-server.com/api/controller/v2"
+  EDA_TOKEN: "YOUR_EDA_TOKEN_HERE"
+  EDA_URL: "https://your-aap-server.com/api/eda/v1"
+  # Optional: Red Hat Customer Portal credentials
+  # REDHAT_USERNAME: "your-username"
+  # REDHAT_PASSWORD: "your-password"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aap-mcp-ansible
+  namespace: aap-mcp-server
+  labels:
+    app: aap-mcp-server
+    component: ansible
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aap-mcp-server
+      component: ansible
+  template:
+    metadata:
+      labels:
+        app: aap-mcp-server
+        component: ansible
+    spec:
+      containers:
+      - name: ansible
+        image: quay.io/your-org/aap-mcp-server:latest
+        command: ["/opt/app-root/src/run-mcp.sh", "ansible.py"]
+        env:
+        - name: PORT
+          value: "8000"
+        envFrom:
+        - secretRef:
+            name: aap-credentials
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aap-mcp-eda
+  namespace: aap-mcp-server
+  labels:
+    app: aap-mcp-server
+    component: eda
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aap-mcp-server
+      component: eda
+  template:
+    metadata:
+      labels:
+        app: aap-mcp-server
+        component: eda
+    spec:
+      containers:
+      - name: eda
+        image: quay.io/your-org/aap-mcp-server:latest
+        command: ["/opt/app-root/src/run-mcp.sh", "eda.py"]
+        env:
+        - name: PORT
+          value: "8001"
+        envFrom:
+        - secretRef:
+            name: aap-credentials
+        ports:
+        - containerPort: 8001
+          name: http
+          protocol: TCP
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aap-mcp-lint
+  namespace: aap-mcp-server
+  labels:
+    app: aap-mcp-server
+    component: lint
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aap-mcp-server
+      component: lint
+  template:
+    metadata:
+      labels:
+        app: aap-mcp-server
+        component: lint
+    spec:
+      containers:
+      - name: lint
+        image: quay.io/your-org/aap-mcp-server:latest
+        command: ["/opt/app-root/src/run-mcp.sh", "ansible-lint.py"]
+        env:
+        - name: PORT
+          value: "8002"
+        ports:
+        - containerPort: 8002
+          name: http
+          protocol: TCP
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aap-mcp-redhat-docs
+  namespace: aap-mcp-server
+  labels:
+    app: aap-mcp-server
+    component: redhat-docs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aap-mcp-server
+      component: redhat-docs
+  template:
+    metadata:
+      labels:
+        app: aap-mcp-server
+        component: redhat-docs
+    spec:
+      containers:
+      - name: redhat-docs
+        image: quay.io/your-org/aap-mcp-server:latest
+        command: ["/opt/app-root/src/run-mcp.sh", "redhat_docs.py"]
+        env:
+        - name: PORT
+          value: "8003"
+        envFrom:
+        - secretRef:
+            name: aap-credentials
+        ports:
+        - containerPort: 8003
+          name: http
+          protocol: TCP
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aap-mcp-ansible
+  namespace: aap-mcp-server
+  labels:
+    app: aap-mcp-server
+    component: ansible
+spec:
+  selector:
+    app: aap-mcp-server
+    component: ansible
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aap-mcp-eda
+  namespace: aap-mcp-server
+  labels:
+    app: aap-mcp-server
+    component: eda
+spec:
+  selector:
+    app: aap-mcp-server
+    component: eda
+  ports:
+  - name: http
+    port: 8001
+    targetPort: 8001
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aap-mcp-lint
+  namespace: aap-mcp-server
+  labels:
+    app: aap-mcp-server
+    component: lint
+spec:
+  selector:
+    app: aap-mcp-server
+    component: lint
+  ports:
+  - name: http
+    port: 8002
+    targetPort: 8002
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aap-mcp-redhat-docs
+  namespace: aap-mcp-server
+  labels:
+    app: aap-mcp-server
+    component: redhat-docs
+spec:
+  selector:
+    app: aap-mcp-server
+    component: redhat-docs
+  ports:
+  - name: http
+    port: 8003
+    targetPort: 8003
+    protocol: TCP
+  type: ClusterIP
+

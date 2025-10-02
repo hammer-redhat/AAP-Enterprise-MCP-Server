@@ -921,4 +921,5 @@ async def suggest_ansible_content(use_case: str, check_aap_inventory: bool = Tru
 
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    # Run with stdio transport - will stay alive waiting for stdin
+    mcp.run()
