@@ -55,6 +55,14 @@ if [ -f "$CURSOR_CONFIG" ]; then
     echo ""
 fi
 
+# Collect credentials for local servers (if needed)
+AAP_TOKEN=""
+AAP_URL=""
+EDA_TOKEN=""
+EDA_URL=""
+REDHAT_USERNAME=""
+REDHAT_PASSWORD=""
+
 # Ask user which configuration to use
 echo "Choose configuration option:"
 echo "  1) OpenShift servers only (recommended)"
@@ -73,71 +81,90 @@ case $CHOICE in
     2)
         echo ""
         echo "Creating merged configuration with both local and OpenShift servers..."
-        cat > "$CURSOR_CONFIG" << 'EOF'
+        echo ""
+        echo "Please provide credentials for local MCP servers:"
+        echo ""
+        
+        # Prompt for AAP credentials
+        read -p "Enter AAP URL (e.g., https://aap.example.com/api/controller/v2): " AAP_URL
+        read -s -p "Enter AAP Token: " AAP_TOKEN
+        echo ""
+        
+        # Prompt for EDA credentials
+        read -p "Enter EDA URL (e.g., https://aap.example.com/api/eda/v1): " EDA_URL
+        read -s -p "Enter EDA Token: " EDA_TOKEN
+        echo ""
+        
+        # Prompt for Red Hat credentials
+        read -p "Enter Red Hat Username: " REDHAT_USERNAME
+        read -s -p "Enter Red Hat Password: " REDHAT_PASSWORD
+        echo ""
+        echo ""
+        cat > "$CURSOR_CONFIG" << EOF
 {
   "mcpServers": {
     "ansible-local": {
       "command": "uv",
       "args": [
         "--directory",
-        "/Users/chrhamme/AAP-Enterprise-MCP-Server",
+        "$(dirname "$0")",
         "run",
         "ansible.py"
       ],
       "env": {
-        "AAP_TOKEN": "W2BOenoLRO4nLufSTDKJ49bUJd3cYv",
-        "AAP_URL": "https://aap-aap.apps.virt.na-launch.com/api/controller/v2"
+        "AAP_TOKEN": "$AAP_TOKEN",
+        "AAP_URL": "$AAP_URL"
       }
     },
     "ansible-openshift": {
-      "command": "/Users/chrhamme/AAP-Enterprise-MCP-Server/connect-ansible-mcp.sh",
+      "command": "$(dirname "$0")/connect-ansible-mcp.sh",
       "args": []
     },
     "eda-local": {
       "command": "uv",
       "args": [
         "--directory",
-        "/Users/chrhamme/AAP-Enterprise-MCP-Server",
+        "$(dirname "$0")",
         "run",
         "eda.py"
       ],
       "env": {
-        "EDA_TOKEN": "W2BOenoLRO4nLufSTDKJ49bUJd3cYv",
-        "EDA_URL": "https://aap-aap.apps.virt.na-launch.com/api/eda/v1"
+        "EDA_TOKEN": "$EDA_TOKEN",
+        "EDA_URL": "$EDA_URL"
       }
     },
     "eda-openshift": {
-      "command": "/Users/chrhamme/AAP-Enterprise-MCP-Server/connect-eda-mcp.sh",
+      "command": "$(dirname "$0")/connect-eda-mcp.sh",
       "args": []
     },
     "ansible-lint-local": {
       "command": "uv",
       "args": [
         "--directory",
-        "/Users/chrhamme/AAP-Enterprise-MCP-Server",
+        "$(dirname "$0")",
         "run",
         "ansible-lint.py"
       ]
     },
     "ansible-lint-openshift": {
-      "command": "/Users/chrhamme/AAP-Enterprise-MCP-Server/connect-lint-mcp.sh",
+      "command": "$(dirname "$0")/connect-lint-mcp.sh",
       "args": []
     },
     "redhat-docs-local": {
       "command": "uv",
       "args": [
         "--directory",
-        "/Users/chrhamme/AAP-Enterprise-MCP-Server",
+        "$(dirname "$0")",
         "run",
         "redhat_docs.py"
       ],
       "env": {
-        "REDHAT_USERNAME": "your-redhat-username",
-        "REDHAT_PASSWORD": "your-redhat-password"
+        "REDHAT_USERNAME": "$REDHAT_USERNAME",
+        "REDHAT_PASSWORD": "$REDHAT_PASSWORD"
       }
     },
     "redhat-docs-openshift": {
-      "command": "/Users/chrhamme/AAP-Enterprise-MCP-Server/connect-redhat-docs-mcp.sh",
+      "command": "$(dirname "$0")/connect-redhat-docs-mcp.sh",
       "args": []
     }
   }
